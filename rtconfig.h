@@ -336,6 +336,12 @@
 /* u8g2: a monochrome graphic library */
 
 /* end of u8g2: a monochrome graphic library */
+#define PKG_USING_WAVPLAYER
+#define PKG_WP_USING_PLAY
+#define PKG_WP_PLAY_DEVICE "sound0"
+#define PKG_WP_USING_RECORD
+#define PKG_WP_RECORD_DEVICE "mic0"
+#define PKG_USING_WAVPLAYER_V020
 #define PKG_USING_HELIX
 #define PKG_USING_HELIX_V100
 
@@ -404,6 +410,8 @@
 /* entertainment: terminal games and other interesting software packages */
 
 /* end of entertainment: terminal games and other interesting software packages */
+#define PKG_USING_OPTPARSE
+#define PKG_USING_OPTPARSE_LATEST_VERSION
 /* end of miscellaneous packages */
 
 /* Arduino libraries */

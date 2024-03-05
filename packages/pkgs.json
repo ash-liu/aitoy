@@ -25,6 +25,11 @@
   "name": "LV_MUSIC_DEMO"
  }, 
  {
+  "path": "/packages/multimedia/wavplayer", 
+  "ver": "v0.2.0", 
+  "name": "WAVPLAYER"
+ }, 
+ {
   "path": "/packages/multimedia/helix", 
   "ver": "v1.0.0", 
   "name": "HELIX"
@@ -38,5 +43,10 @@
   "path": "/packages/peripherals/touch/ft6236", 
   "ver": "v1.0.0", 
   "name": "FT6236"
+ }, 
+ {
+  "path": "/packages/misc/optparse", 
+  "ver": "latest", 
+  "name": "OPTPARSE"
  }
 ]
