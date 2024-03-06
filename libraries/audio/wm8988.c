@@ -116,8 +116,8 @@ void wm8988_set_out_valume(struct rt_i2c_bus_device *dev, rt_uint8_t val)
 
 void wm8988_set_in_valume(struct rt_i2c_bus_device *dev, rt_uint8_t val)
 {
-    // wm8988_reg_wrtie(dev, LEFT_INPUT_VOLUME | (1<<8) | (1<<7) | ((128*val)/100));
-    // wm8988_reg_wrtie(dev, RIGHT_INPUT_VOLUME | (1<<8) | (1<<7) | ((128*val)/100));
+    // wm8988_reg_wrtie(dev, LEFT_INPUT_VOLUME | (1<<8) | val);
+    // wm8988_reg_wrtie(dev, RIGHT_INPUT_VOLUME | (1<<8) | val);
 }
 
 #if 0
@@ -221,8 +221,8 @@ void wm8988_init(struct rt_i2c_bus_device *dev)
     // Channel Zero Cross Detector = 0，Change gain immediately
     // Channel Input Analogue Mute = 0，Disable Mute
     // Volume Update = 1，Update left and right channel gains
-    wm8988_reg_wrtie(dev, LEFT_INPUT_VOLUME|0x117);  //197
-    wm8988_reg_wrtie(dev, RIGHT_INPUT_VOLUME|0x117);
+    wm8988_reg_wrtie(dev, LEFT_INPUT_VOLUME|0x127);     //  100111，0dB
+    wm8988_reg_wrtie(dev, RIGHT_INPUT_VOLUME|0x127);    //  100111，0dB
     // LR Out1 volume
     // R2 R3配置左右输出1声道音量
     // OUT1 Volume = 0
@@ -244,8 +244,10 @@ void wm8988_init(struct rt_i2c_bus_device *dev)
     //     Left ADC Volume Update = 1,Update left and right channel gains
     // R22 Right ADC Digital Volume Control = 11000011,0dB
     //     Right ADC Volume Update = 1,Update left and right channel gains
-    wm8988_reg_wrtie(dev, LEFT_ADC_VOLUME|0x1c3);  //MIC 默认 0 dB
-    wm8988_reg_wrtie(dev, RIGHT_ADC_VOLUME|0x1c3);
+    // wm8988_reg_wrtie(dev, LEFT_ADC_VOLUME|0x1c3);  //MIC 默认 0 dB
+    // wm8988_reg_wrtie(dev, RIGHT_ADC_VOLUME|0x1c3);
+    wm8988_reg_wrtie(dev, LEFT_ADC_VOLUME|0x1d3);  //MIC 默认 0 dB
+    wm8988_reg_wrtie(dev, RIGHT_ADC_VOLUME|0x1d3);
     // LR DAC Volume
     // R10 R11 配置 DAC Digital Volume Control = 11111111，0dB
     //         DAC Volume Update = 1，Update left and right channel gains

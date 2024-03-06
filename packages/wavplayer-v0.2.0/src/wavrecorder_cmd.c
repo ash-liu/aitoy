@@ -72,7 +72,7 @@ int wavrecord_args_prase(int argc, char *argv[], struct wavrecord_args *record_a
         case 's':
             record_args->action = WAVRECORDER_ACTION_START;
             record_args->file = options.optarg;
-            record_args->samplerate = ((argv[3] == RT_NULL) ? 8000 : atoi(argv[3]));
+            record_args->samplerate = ((argv[3] == RT_NULL) ? 44100 : atoi(argv[3]));
             record_args->channels = ((argv[4] == RT_NULL) ? 2 : atoi(argv[4]));
             record_args->samplebits = ((argv[5] == RT_NULL) ? 16 : atoi(argv[5]));
             break;

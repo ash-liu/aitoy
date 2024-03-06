@@ -9,9 +9,15 @@
  */
 
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <rtthread.h>
 #include <webclient.h>
+
+#include "mbedtls/base64.h"
+#include <rtdbg.h>
+
 
 #define POST_RESP_BUFSZ 1024 * 1024 * 2
 #define POST_HEADER_BUFSZ 1024 * 5
@@ -19,7 +25,8 @@
 #define POST_LOCAL_URI "https://wx.lstabc.com/weixin"
 
 const char *post_data = "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[你好]]></Content><MsgId>123</MsgId></xml>";
-#define BUILD_MESSAGE "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
+#define BUILD_MESSAGE_TEST "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
+#define BUILD_MESSAGE_WAV "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[wav]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
 
 // date 2024 02 27 19 35 30
 /* send HTTP POST request by common request interface, it used to receive longer data */
@@ -129,6 +136,7 @@ static int webclient_post_smpl(const char *uri, const char *post_data, size_t da
 }
 
 
+#define DEFAULT_POST_FILE "/sdcard/test.wav"
 //  web_post_test 鲁迅和周树人是啥关系
 //
 // "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[你好]]></Content><MsgId>123</MsgId></xml>"
@@ -138,37 +146,108 @@ int webclient_post_test(int argc, char **argv)
     char *data = RT_NULL;
     int message_length = 0;
 
-    // web_post_test post_data
-    if (argc == 1)
-    {
+    // only test
+    if (argc == 1) {
         uri = web_strdup(POST_LOCAL_URI);
-        if (uri == RT_NULL)
-        {
+        if (uri == RT_NULL) {
             rt_kprintf("no memory for create post request uri buffer.\n");
             return -RT_ENOMEM;
         }
         webclient_post_comm(uri, (void *)post_data, rt_strlen(post_data));
     }
+    // test type
     else if (argc == 2) {
         uri = web_strdup(POST_LOCAL_URI);
-        if (uri == RT_NULL)
-        {
+        if (uri == RT_NULL) {
             rt_kprintf("no memory for create post request uri buffer.\n");
             return -RT_ENOMEM;
         }
 
         message_length = strlen(argv[1]) + 300;
         data = web_malloc(message_length);
-        if (data == RT_NULL)
-        {
+        if (data == RT_NULL) {
             rt_kprintf("no memory for create post data buffer.\n");
             return -RT_ENOMEM;
         }
-        rt_sprintf(data, BUILD_MESSAGE, argv[1]);
+        rt_sprintf(data, BUILD_MESSAGE_TEST, argv[1]);
         rt_kprintf("data len: %d\n", rt_strlen(data));
             // rt_strncpy(data, argv[1], strlen(argv[1]));
         webclient_post_comm(uri, (void *)data, rt_strlen(data));
         // webclient_post_comm(uri, (void *)post_data, rt_strlen(post_data));
+    }
+    // wav type
+    else if (argc == 3) {
+        rt_size_t length;
+        int fd = -1;
+        unsigned char *file_buffer = RT_NULL;
+        unsigned char *base64_buffer = RT_NULL;
+        rt_size_t base64_length = 0;
+        rt_uint32_t op_ret;
+
+        fd = open(DEFAULT_POST_FILE, O_RDONLY, 0);
+        if (fd < 0) {
+            LOG_D("open file(%s) error.", DEFAULT_POST_FILE);
+            return -RT_ERROR;
+        }
+
+        // get file length
+        length = lseek(fd, 0, SEEK_END);
+        lseek(fd, 0, SEEK_SET);
+
+        // read file to buffer
+        file_buffer = (unsigned char *)web_malloc(length);
+        if (file_buffer == RT_NULL) {
+            LOG_D("no memory for create file buffer.");
+            close(fd);
+            return -RT_ENOMEM;
+        }
+
+        if (read(fd, file_buffer, length) != length) {
+            LOG_D("read file(%s) error.", DEFAULT_POST_FILE);
+            close(fd);
+            web_free(file_buffer);
+            return -RT_ERROR;
+        }
+
+        // base64 encode
+        base64_length = (length / 3 + 1) * 4 + 1;
+        base64_buffer = (unsigned char *)web_malloc(base64_length);
+        if (base64_buffer == RT_NULL) {
+            LOG_D("no memory for create base64 buffer.");
+            close(fd);
+            web_free(file_buffer);
+            return -RT_ENOMEM;
+        }
+
+        op_ret = mbedtls_base64_encode(base64_buffer, base64_length, &base64_length, file_buffer, length);
+        if (op_ret != RT_EOK) {
+            LOG_D("base64 encode error.");
+            close(fd);
+            web_free(file_buffer);
+            web_free(base64_buffer);
+            return -RT_ERROR;
+        }
+
+        close(fd);
+        web_free(file_buffer);
+
+        uri = web_strdup(POST_LOCAL_URI);
+        if (uri == RT_NULL) {
+            rt_kprintf("no memory for create post request uri buffer.\n");
+            return -RT_ENOMEM;
+        }
+
+        message_length = base64_length + 300;
+        data = web_malloc(message_length);
+        if (data == RT_NULL) {
+            rt_kprintf("no memory for create post data buffer.\n");
+            return -RT_ENOMEM;
+        }
+        rt_sprintf(data, BUILD_MESSAGE_WAV, base64_buffer);
+        web_free(base64_buffer);
+        rt_kprintf("data len: %d\n", rt_strlen(data));
+        webclient_post_comm(uri, (void *)data, rt_strlen(data));
+
     }
     else
     {
