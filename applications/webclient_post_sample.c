@@ -16,6 +16,7 @@
 #include <webclient.h>
 
 #include "mbedtls/base64.h"
+#include "ezxml.h"
 #include <rtdbg.h>
 
 
@@ -28,14 +29,19 @@ const char *post_data = "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUse
 #define BUILD_MESSAGE_TEST "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
 #define BUILD_MESSAGE_WAV "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[wav]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
 
+extern struct rt_messagequeue lvgl_msg_mq;
+
 // date 2024 02 27 19 35 30
 /* send HTTP POST request by common request interface, it used to receive longer data */
 static int webclient_post_comm(const char *uri, const void *post_data, size_t data_len)
 {
     struct webclient_session *session = RT_NULL;
     unsigned char *buffer = RT_NULL;
+    rt_uint8_t *msg = RT_NULL;
     int index, ret = 0;
     int bytes_read, resp_status;
+
+    ezxml_t root, ask_msg, answer_msg;
 
     buffer = (unsigned char *)web_malloc(POST_RESP_BUFSZ);
     if (buffer == RT_NULL)
@@ -78,19 +84,59 @@ static int webclient_post_comm(const char *uri, const void *post_data, size_t da
         {
             rt_kprintf("%c", buffer[index]);
         }
+
+        // malloc
+        msg = rt_malloc(bytes_read);
+        if (msg == RT_NULL) {
+            rt_kprintf("no memory for send message to lvgl.\n");
+            ret = -RT_ENOMEM;
+            goto __exit;
+        }
+
+        // parse xml
+        root = ezxml_parse_str((const char *)buffer, bytes_read);
+        if (root == RT_NULL) {
+            rt_kprintf("parse xml failed.\n");
+            ret = -RT_ERROR;
+            goto __exit;
+        }
+        ask_msg = ezxml_get(root, "InputMsg", -1);
+        answer_msg = ezxml_get(root, "Content", -1);
+        rt_sprintf(msg, "问: %s\n答: %s\n", ezxml_txt(ask_msg), ezxml_txt(answer_msg));
+
+        rt_kprintf("send message to lvgl: \n");
+        for (int i = 0; i < rt_strlen(msg); i++) {
+            rt_kprintf("%c", msg[i]);
+        }
+
+        // send message to lvgl
+        ret = rt_mq_send(&lvgl_msg_mq, msg, rt_strlen(msg)+1);
+        // ret = rt_mq_send(&lvgl_msg_mq, "test", rt_strlen("test")+1);
+        if (ret != RT_EOK) {
+            rt_kprintf("send message to lvgl failed. %d\n", ret);
+            ret = -RT_ERROR;
+            goto __exit;
+        }
+
     } while (1);
 
     rt_kprintf("\n");
 
 __exit:
-    if (session)
-    {
+    if (session) {
         webclient_close(session);
     }
 
-    if (buffer)
-    {
+    if (msg) {
+        rt_free(msg);
+    }
+
+    if (buffer) {
         web_free(buffer);
+    }
+
+    if (root) {
+        ezxml_free(root);
     }
 
     return ret;
@@ -145,18 +191,10 @@ int webclient_post_test(int argc, char **argv)
     char *uri = RT_NULL;
     char *data = RT_NULL;
     int message_length = 0;
+    int ret = 0;
 
-    // only test
-    if (argc == 1) {
-        uri = web_strdup(POST_LOCAL_URI);
-        if (uri == RT_NULL) {
-            rt_kprintf("no memory for create post request uri buffer.\n");
-            return -RT_ENOMEM;
-        }
-        webclient_post_comm(uri, (void *)post_data, rt_strlen(post_data));
-    }
-    // test type
-    else if (argc == 2) {
+    // text type
+    if (argc == 2) {
         uri = web_strdup(POST_LOCAL_URI);
         if (uri == RT_NULL) {
             rt_kprintf("no memory for create post request uri buffer.\n");
@@ -172,11 +210,11 @@ int webclient_post_test(int argc, char **argv)
         rt_sprintf(data, BUILD_MESSAGE_TEST, argv[1]);
         rt_kprintf("data len: %d\n", rt_strlen(data));
             // rt_strncpy(data, argv[1], strlen(argv[1]));
-        webclient_post_comm(uri, (void *)data, rt_strlen(data));
+        ret = webclient_post_comm(uri, (void *)data, rt_strlen(data));
         // webclient_post_comm(uri, (void *)post_data, rt_strlen(post_data));
     }
     // wav type
-    else if (argc == 3) {
+    else if (argc == 1) {
         rt_size_t length;
         int fd = -1;
         unsigned char *file_buffer = RT_NULL;
@@ -246,11 +284,9 @@ int webclient_post_test(int argc, char **argv)
         rt_sprintf(data, BUILD_MESSAGE_WAV, base64_buffer);
         web_free(base64_buffer);
         rt_kprintf("data len: %d\n", rt_strlen(data));
-        webclient_post_comm(uri, (void *)data, rt_strlen(data));
-
+        ret = webclient_post_comm(uri, (void *)data, rt_strlen(data));
     }
-    else
-    {
+    else {
         rt_kprintf("wrong.\n");
     }
 
@@ -308,7 +344,7 @@ int webclient_post_test(int argc, char **argv)
         web_free(data);
     }
 
-    return RT_EOK;
+    return ret;
 }
 
 #ifdef FINSH_USING_MSH

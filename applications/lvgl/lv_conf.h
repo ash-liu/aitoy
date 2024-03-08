@@ -34,5 +34,6 @@
 
 #define LV_FONT_MONTSERRAT_12       1
 #define LV_FONT_MONTSERRAT_16       1
+#define LV_FONT_MYFONT       1
 
 #endif

@@ -15,6 +15,11 @@
   "name": "CJSON"
  }, 
  {
+  "path": "/packages/language/XML/ezXML", 
+  "ver": "latest", 
+  "name": "EZXML"
+ }, 
+ {
   "path": "/packages/multimedia/LVGL/LVGL", 
   "ver": "v8.2.0", 
   "name": "LVGL"
