@@ -73,8 +73,9 @@ int wavrecord_args_prase(int argc, char *argv[], struct wavrecord_args *record_a
             record_args->action = WAVRECORDER_ACTION_START;
             record_args->file = options.optarg;
             if (argc <= 3) {
-                record_args->samplerate     = 44100;
-                record_args->channels       = 2;
+                // record_args->samplerate     = 44100;
+                record_args->samplerate     = 8000;
+                record_args->channels       = 1;
                 record_args->samplebits     = 16;
             }
             else {

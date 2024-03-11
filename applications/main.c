@@ -10,6 +10,7 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
+#include <wavrecorder.h>
 #include "drv_common.h"
 
 enum {
@@ -43,6 +44,12 @@ int main(void)
     int wav_argc;
     char *const_argv_start[] = {"wavrecord", "-s", "/sdcard/test.wav"};
     // char *const_argv_stop[] = {"wavrecord", "-t"};
+    struct wavrecord_info info = {
+        .uri = "/sdcard/test.wav",
+        .samplerate = 8000,
+        .channels = 2,
+        .samplebits = 16,
+    };
 
     rt_int32_t ret = 0;
     rt_uint32_t retry = 0;
@@ -66,8 +73,9 @@ int main(void)
                 state = STATE_RECOARDING;
                 rt_pin_write(LED_PIN, PIN_LOW);
                 rt_kprintf("start recording\n");
-                wav_argc = 3;
-                wav_recorder(wav_argc, const_argv_start);
+                // wav_argc = 3;
+                // wav_recorder(wav_argc, const_argv_start);
+                wavrecorder_start(&info);
                 break;
             
             case STATE_RECOARDING:

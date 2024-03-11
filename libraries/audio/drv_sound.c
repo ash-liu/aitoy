@@ -109,7 +109,7 @@ void SAIA_samplerate_set(rt_uint32_t freq)
 void SAIB_samplerate_set(rt_uint32_t freq)
 {
     // SAI2B是从模块，因此这里要配置的是主模块A
-    SAIA_samplerate_set(44100);
+    SAIA_samplerate_set(freq);
     // 使能SAI2A的数据流发送
     DMA2_Stream3->CR |= 1<<0;
     // 使能SAI2B
@@ -126,10 +126,12 @@ void SAIA_channels_set(rt_uint16_t channels)
     if (channels == 2)
     {
         sai1->acr1 &= ~(1 << 12);
+        wm8988_set_in_channel(_stm32_audio_play.i2c_bus, 2);
     }
     else
     {
         sai1->acr1 |= (1 << 12);
+        wm8988_set_in_channel(_stm32_audio_play.i2c_bus, 1);
     }
 }
 
@@ -137,7 +139,7 @@ void SAIA_channels_set(rt_uint16_t channels)
 void SAIB_channels_set(rt_uint16_t channels)
 {
     // SAI2B是从模块，因此这里要配置的是主模块A
-    SAIA_channels_set(2);
+    SAIA_channels_set(channels);
     // 调试需要，后期可以注释掉
     //rt_kprintf("channels_set_sai_bcr1:0x%08x \n",sai1->bcr1);
     //rt_kprintf("sai_bsr:0x%08x \n",(rt_uint32_t)sai1->bsr);

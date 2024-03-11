@@ -120,6 +120,16 @@ void wm8988_set_in_valume(struct rt_i2c_bus_device *dev, rt_uint8_t val)
     // wm8988_reg_wrtie(dev, RIGHT_INPUT_VOLUME | (1<<8) | val);
 }
 
+void wm8988_set_in_channel(struct rt_i2c_bus_device *dev, rt_uint8_t channel)
+{
+    if (channel == 1) {
+        wm8988_reg_wrtie(dev, ADC_INPUT_MODE|0x100);   //  bit7:6 00  stereo
+    }
+    else {
+        wm8988_reg_wrtie(dev, ADC_INPUT_MODE|0x180);   //  bit7:6 10  Mono Mix right ADC
+    }
+}
+
 #if 0
 void wm8988_init(struct rt_i2c_bus_device *dev)
 {

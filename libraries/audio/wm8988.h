@@ -15,5 +15,5 @@
 
 void wm8988_init(struct rt_i2c_bus_device *dev);
 void wm8988_set_out_valume(struct rt_i2c_bus_device *dev, rt_uint8_t val);
-
+void wm8988_set_in_channel(struct rt_i2c_bus_device *dev, rt_uint8_t channel);
 #endif /* _WM_8988_H_ */

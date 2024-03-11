@@ -41,7 +41,7 @@ static int webclient_post_comm(const char *uri, const void *post_data, size_t da
     int index, ret = 0;
     int bytes_read, resp_status;
 
-    ezxml_t root, ask_msg, answer_msg;
+    ezxml_t root = RT_NULL, ask_msg, answer_msg;
 
     buffer = (unsigned char *)web_malloc(POST_RESP_BUFSZ);
     if (buffer == RT_NULL)
