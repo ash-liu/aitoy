@@ -189,7 +189,7 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
         spi_handle->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
     }
 
-    LOG_D("sys freq: %d, pclk2 freq: %d, SPI limiting freq: %d, BaudRatePrescaler: %d",
+    LOG_I("sys freq: %d, pclk2 freq: %d, SPI limiting freq: %d, BaudRatePrescaler: %d",
           HAL_RCC_GetSysClockFreq(),
           SPI_APB_CLOCK,
           cfg->max_hz,

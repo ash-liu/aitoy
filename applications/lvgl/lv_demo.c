@@ -44,9 +44,9 @@ static void screen_click_event_cb(lv_event_t * e) {
 
     /* 判断点击是在上半部分还是下半部分，并相应地滚动内容 */
     if (point.y > height / 2) {
-        lv_obj_scroll_by(obj, 0, -height / 2, LV_ANIM_ON); // 向上滚动
+        lv_obj_scroll_by(obj, 0, -height / 2, LV_ANIM_OFF); // 向上滚动
     } else {
-        lv_obj_scroll_by(obj, 0, height / 2, LV_ANIM_ON);  // 向下滚动
+        lv_obj_scroll_by(obj, 0, height / 2, LV_ANIM_OFF);  // 向下滚动
     }
 }
 
@@ -57,8 +57,8 @@ static void init_demo_ui()
     // lv_label_set_text(cz_label, message);
     lv_obj_set_style_text_font(cz_label, &lv_font_myfont, 0);
     lv_label_set_long_mode(cz_label, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(cz_label, 460);
-    lv_obj_align(cz_label, LV_ALIGN_TOP_LEFT, 5, 5);
+    lv_obj_set_width(cz_label, 470);
+    lv_obj_align(cz_label, LV_ALIGN_BOTTOM_LEFT, 5, 5);
 
     lv_obj_add_event_cb(lv_scr_act(), screen_click_event_cb, LV_EVENT_CLICKED, NULL);
 }
@@ -103,28 +103,28 @@ static void lvgl_entry(void *parameter)
     // extern void lv_demo_music(void);
     // lv_demo_music();
     init_demo_ui();
-    show_message("hello11111111111111111111111111.\n"
-                    "hello22222222222222222222222222.\n"
-                    "hello33333333333333333333333333.\n"
-                    "hello44444444444444444444444444.\n"
-                    "hello55555555555555555555555555.\n"
-                    "hello66666666666666666666666666.\n"
-                    "hello77777777777777777777777777.\n"
-                    "hello88888888888888888888888888.\n"
-                    "hello99999999999999999999999999.\n"
-                    "hello00000000000000000000000000.\n"
-                    "hello11111111111111111111111111.\n"
-                    "hello22222222222222222222222222.\n"
-                    "hello33333333333333333333333333.\n"
-                    "hello44444444444444444444444444.\n"
-                    "hello55555555555555555555555555.\n"
-                    "hello66666666666666666666666666.\n"
-                    "hello77777777777777777777777777.\n"
-                    "hello88888888888888888888888888.\n"
-                    "hello99999999999999999999999999.\n"
-                    "hello00000000000000000000000000.\n"
-                    "hello11111111111111111111111111.\n"
-                    "hello22222222222222222222222222.\n"
+    show_message("hello11111111111111111111111111.\r"
+                    "hello22222222222222222222222222.\r"
+                    "hello33333333333333333333333333.\r"
+                    "hello44444444444444444444444444.\r"
+                    "hello55555555555555555555555555.\r"
+                    "hello66666666666666666666666666.\r"
+                    "hello77777777777777777777777777.\r"
+                    "hello88888888888888888888888888.\r"
+                    "hello99999999999999999999999999.\r"
+                    "hello00000000000000000000000000.\r"
+                    "hello11111111111111111111111111.\r"
+                    "hello22222222222222222222222222.\r"
+                    "hello33333333333333333333333333.\r"
+                    "hello44444444444444444444444444.\r"
+                    "hello55555555555555555555555555.\r"
+                    "hello66666666666666666666666666.\r"
+                    "hello77777777777777777777777777.\r"
+                    "hello88888888888888888888888888.\r"
+                    "hello99999999999999999999999999.\r"
+                    "hello00000000000000000000000000.\r"
+                    "hello11111111111111111111111111.\r"
+                    "hello22222222222222222222222222.\r"
     );
 
     buf = rt_malloc(1024*2);

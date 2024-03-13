@@ -14,7 +14,7 @@
 #include <rtconfig.h>
 
 #define LV_USE_PERF_MONITOR 1
-#define LV_DISP_DEF_REFR_PERIOD 5
+#define LV_DISP_DEF_REFR_PERIOD 10
 
 #ifdef BSP_USING_ILI9488
 #   define LV_COLOR_16_SWAP         0
@@ -34,6 +34,6 @@
 
 #define LV_FONT_MONTSERRAT_12       1
 #define LV_FONT_MONTSERRAT_16       1
-#define LV_FONT_MYFONT       1
+#define LV_FONT_MYFONT              1
 
 #endif

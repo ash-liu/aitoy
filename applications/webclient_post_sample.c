@@ -71,17 +71,14 @@ static int webclient_post_comm(const char *uri, const void *post_data, size_t da
         goto __exit;
     }
 
-    rt_kprintf("webclient post response data: \n");
-    do
-    {
+    do {
         bytes_read = webclient_read(session, buffer, POST_RESP_BUFSZ);
-        if (bytes_read <= 0)
-        {
+        rt_kprintf("webclient post response data(length=%d): \n", bytes_read);
+        if (bytes_read <= 0) {
             break;
         }
 
-        for (index = 0; index < bytes_read; index++)
-        {
+        for (index = 0; index < bytes_read; index++) {
             rt_kprintf("%c", buffer[index]);
         }
 
@@ -104,8 +101,11 @@ static int webclient_post_comm(const char *uri, const void *post_data, size_t da
         answer_msg = ezxml_get(root, "Content", -1);
         rt_sprintf(msg, "问: %s\n答: %s\n", ezxml_txt(ask_msg), ezxml_txt(answer_msg));
 
-        rt_kprintf("send message to lvgl: \n");
+        rt_kprintf("send message to lvgl(length=%d): \n", rt_strlen(msg));
         for (int i = 0; i < rt_strlen(msg); i++) {
+            if (msg[i] == '\n') {
+                msg[i] = '\r';
+            }
             rt_kprintf("%c", msg[i]);
         }
 
