@@ -31,6 +31,8 @@ static rt_uint8_t lvgl_thread_stack[LV_THREAD_STACK_SIZE];
 struct rt_messagequeue lvgl_msg_mq;           // 消息队列控制块
 lv_obj_t * cz_label;
 
+rt_uint8_t gpt4_used = 0;
+
 
 /* 事件回调函数 */
 static void screen_click_event_cb(lv_event_t * e) {
@@ -41,25 +43,50 @@ static void screen_click_event_cb(lv_event_t * e) {
 
     /* 获取屏幕或容器的高度 */
     lv_coord_t height = lv_obj_get_height(obj);
+    lv_coord_t width = lv_obj_get_width(obj);
 
     /* 判断点击是在上半部分还是下半部分，并相应地滚动内容 */
-    if (point.y > height / 2) {
-        lv_obj_scroll_by(obj, 0, -height / 2, LV_ANIM_OFF); // 向上滚动
-    } else {
-        lv_obj_scroll_by(obj, 0, height / 2, LV_ANIM_OFF);  // 向下滚动
+    if (point.x < width / 3) {
+        if (gpt4_used == 0) {
+            gpt4_used = 1;
+            rt_mq_send(&lvgl_msg_mq, "gpt4 used on.\n", sizeof("gpt4 used on.\n"));
+            rt_kprintf("gpt4 used on.\n");
+        }
+        else {
+            gpt4_used = 0;
+            rt_mq_send(&lvgl_msg_mq, "gpt4 used off.\n", sizeof("gpt4 used off.\n"));
+            rt_kprintf("gpt4 used off.\n");
+        }
+    }
+    else {
+        if (point.y > height / 2) {
+            lv_obj_scroll_by(obj, 0, -height / 2, LV_ANIM_OFF); // 向上滚动
+        } 
+        else {
+            lv_obj_scroll_by(obj, 0, height / 2, LV_ANIM_OFF);  // 向下滚动
+        }
     }
 }
 
 
 static void init_demo_ui()
 {
+    // 创建label
     cz_label = lv_label_create(lv_scr_act());
-    // lv_label_set_text(cz_label, message);
+    
+    // 设置样式文本字体
     lv_obj_set_style_text_font(cz_label, &lv_font_myfont, 0);
     lv_label_set_long_mode(cz_label, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(cz_label, 470);
     lv_obj_align(cz_label, LV_ALIGN_BOTTOM_LEFT, 5, 5);
 
+    //设置样式文本行间距
+    static lv_style_t style;
+    lv_style_init(&style);
+    lv_style_set_text_line_space(&style, 7);
+    lv_obj_add_style(cz_label, &style, 0);
+
+    // 设置label的回调函数
     lv_obj_add_event_cb(lv_scr_act(), screen_click_event_cb, LV_EVENT_CLICKED, NULL);
 }
 
@@ -103,29 +130,7 @@ static void lvgl_entry(void *parameter)
     // extern void lv_demo_music(void);
     // lv_demo_music();
     init_demo_ui();
-    show_message("hello11111111111111111111111111.\r"
-                    "hello22222222222222222222222222.\r"
-                    "hello33333333333333333333333333.\r"
-                    "hello44444444444444444444444444.\r"
-                    "hello55555555555555555555555555.\r"
-                    "hello66666666666666666666666666.\r"
-                    "hello77777777777777777777777777.\r"
-                    "hello88888888888888888888888888.\r"
-                    "hello99999999999999999999999999.\r"
-                    "hello00000000000000000000000000.\r"
-                    "hello11111111111111111111111111.\r"
-                    "hello22222222222222222222222222.\r"
-                    "hello33333333333333333333333333.\r"
-                    "hello44444444444444444444444444.\r"
-                    "hello55555555555555555555555555.\r"
-                    "hello66666666666666666666666666.\r"
-                    "hello77777777777777777777777777.\r"
-                    "hello88888888888888888888888888.\r"
-                    "hello99999999999999999999999999.\r"
-                    "hello00000000000000000000000000.\r"
-                    "hello11111111111111111111111111.\r"
-                    "hello22222222222222222222222222.\r"
-    );
+    show_message("Hello, Wifi is connecting.\r");
 
     buf = rt_malloc(1024*2);
     if (buf == RT_NULL) {

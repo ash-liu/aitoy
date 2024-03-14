@@ -12,6 +12,9 @@
 #include <rtdevice.h>
 #include <wavrecorder.h>
 #include "drv_common.h"
+// #include <arpa/inet.h>
+#include <netdev_ipaddr.h>
+#include <netdev.h>
 
 enum {
     STATE_IDLE,
@@ -27,6 +30,8 @@ extern void wlan_autoconnect_init(void);
 static volatile rt_uint8_t state = STATE_IDLE;
 
 extern int wav_recorder(int argc, char *argv[]);
+extern struct rt_messagequeue lvgl_msg_mq;
+extern struct netdev *netdev_default;
 
 void key_isr(void *args)
 {
@@ -36,6 +41,19 @@ void key_isr(void *args)
     
     if (state == STATE_RECOARDING) {
         state = STATE_STOP;
+    }
+}
+
+
+static void rt_wlan_handler(int event, struct rt_wlan_buff *buff, void *parameter)
+{
+    rt_uint8_t buf[100];
+    rt_kprintf("event %d\n", event);
+
+    if (event == RT_WLAN_EVT_READY) {
+        // 获取ip地址
+        rt_sprintf(buf, "Got IP address : %s\n", inet_ntoa(netdev_default->ip_addr));
+        rt_mq_send(&lvgl_msg_mq, buf, rt_strlen(buf) + 1);
     }
 }
 
@@ -63,6 +81,8 @@ int main(void)
     wlan_autoconnect_init();
     /* enable auto reconnect on WLAN device */
     rt_wlan_config_autoreconnect(RT_TRUE);
+    rt_wlan_register_event_handler(RT_WLAN_EVT_READY, rt_wlan_handler, RT_NULL);
+
 
     while(1) {
         switch (state) {
@@ -88,10 +108,11 @@ int main(void)
                 // wav_argc = 2;
                 // wav_recorder(wav_argc, const_argv_stop);
                 wavrecorder_stop();
+                retry = 0;
                 do {
                     ret = webclient_post_test(1, "");
                 }
-                while (ret != 0 && retry++ < 3);
+                while (ret != 0 && retry++ < 4);
                 break;
             
             default:

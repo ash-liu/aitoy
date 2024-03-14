@@ -20,16 +20,20 @@
 #include <rtdbg.h>
 
 
+#define MIN_POST_RESP_SIZE 100
 #define POST_RESP_BUFSZ 1024 * 1024 * 2
 #define POST_HEADER_BUFSZ 1024 * 5
 
-#define POST_LOCAL_URI "https://wx.lstabc.com/weixin"
+// #define POST_LOCAL_URI "https://wx.lstabc.com/weixin"
+#define POST_LOCAL_URI "http://lstabc.com:8000/weixin"
 
 const char *post_data = "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[你好]]></Content><MsgId>123</MsgId></xml>";
 #define BUILD_MESSAGE_TEST "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
-#define BUILD_MESSAGE_WAV "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[wav]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
+#define BUILD_MESSAGE_WAV_GPT3 "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><Gpt4Used>0</Gpt4Used><MsgType><![CDATA[wav]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
+#define BUILD_MESSAGE_WAV_GPT4 "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><Gpt4Used>1</Gpt4Used><MsgType><![CDATA[wav]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"
 
 extern struct rt_messagequeue lvgl_msg_mq;
+extern rt_uint8_t gpt4_used;
 
 // date 2024 02 27 19 35 30
 /* send HTTP POST request by common request interface, it used to receive longer data */
@@ -78,6 +82,11 @@ static int webclient_post_comm(const char *uri, const void *post_data, size_t da
             break;
         }
 
+        if (bytes_read < MIN_POST_RESP_SIZE) {
+            ret = -RT_ENOMEM;
+            goto __exit;
+        }
+
         for (index = 0; index < bytes_read; index++) {
             rt_kprintf("%c", buffer[index]);
         }
@@ -99,7 +108,7 @@ static int webclient_post_comm(const char *uri, const void *post_data, size_t da
         }
         ask_msg = ezxml_get(root, "InputMsg", -1);
         answer_msg = ezxml_get(root, "Content", -1);
-        rt_sprintf(msg, "问: %s\n答: %s\n", ezxml_txt(ask_msg), ezxml_txt(answer_msg));
+        rt_sprintf(msg, "问: %s\n答: %s\n\n", ezxml_txt(ask_msg), ezxml_txt(answer_msg));
 
         rt_kprintf("send message to lvgl(length=%d): \n", rt_strlen(msg));
         for (int i = 0; i < rt_strlen(msg); i++) {
@@ -281,7 +290,12 @@ int webclient_post_test(int argc, char **argv)
             rt_kprintf("no memory for create post data buffer.\n");
             return -RT_ENOMEM;
         }
-        rt_sprintf(data, BUILD_MESSAGE_WAV, base64_buffer);
+        if (gpt4_used) {
+            rt_sprintf(data, BUILD_MESSAGE_WAV_GPT4, base64_buffer);
+        }
+        else {
+            rt_sprintf(data, BUILD_MESSAGE_WAV_GPT3, base64_buffer);
+        }
         web_free(base64_buffer);
         rt_kprintf("data len: %d\n", rt_strlen(data));
         ret = webclient_post_comm(uri, (void *)data, rt_strlen(data));

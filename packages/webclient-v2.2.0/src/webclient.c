@@ -34,6 +34,8 @@
 #include <lwip/sockets.h>
 #endif /* RT_USING_SAL */
 
+#define WEBCLIENT_DEBUG
+
 #define DBG_ENABLE
 #define DBG_SECTION_NAME               "web"
 #ifdef WEBCLIENT_DEBUG
@@ -45,7 +47,8 @@
 #include <rtdbg.h>
 
 /* default receive or send timeout */
-#define WEBCLIENT_DEFAULT_TIMEO        6
+// #define WEBCLIENT_DEFAULT_TIMEO        6
+#define WEBCLIENT_DEFAULT_TIMEO        30
 
 extern long int strtol(const char *nptr, char **endptr, int base);
 
