@@ -1,29 +1,33 @@
-# 板载 Wi-Fi 例程
+# AITOY
 
 ## 简介
 
-本例程为 WIFI 例程，使用 AP6212 来连接到网络。并实现了断电自动重连。如果对本例程想进一步了解可以阅读[设计思想](./docs/设计思想.md)。
+这是一个玩具demo，基于rt-thread的art-pi开发板，实现了一个可以与Chat类AI对话，并显示结果的功能。
 
 ## 硬件说明
 
-![wifi_hardware](./figures/wifi_hardware.png)
+硬件分为两个部分：[底板](https://item.taobao.com/item.htm?abbucket=12&id=688233426975&ns=1&spm=a21n57.1.0.0.4887523cRG820E)与多媒体[扩展板](https://item.taobao.com/item.htm?id=631635658284&scene=taobao_shop&spm=a1z10.1-c-s.w5003-25322139764.12.10c258f5k9nrLe)。
 
-AP6212是正基AMPAK推出的一款低功耗高性能的WiFi+BT4.2模块，该模块符合802.11b/g/n，其中WiFi功能采用SDIO接口，蓝牙采用UART/I2S/PCM接口，具有StationMode，SoftAP，P2P功能等。该芯片硬件电路连接方式如上图所示。
+详细的信息，可以参考上面的淘宝链接，或者在如下[链接](https://art-pi.gitee.io/website/)获取到更多开发相关的知识。
 
-## 软件说明
+## 环境说明
 
-本例程仅实现了 WIFI 联网的功能，并支持重连，可以作为您开发其他网络相关应用的基础工程。
+既然是rt-thread的官方开发板，肯定是基于rt-thread全套来实现。开发环境是rt studio，直接把本项目导入到studio的workspace即可。这个项目也是从SDK的wifi demo起步的。
 
-## 运行
-### 编译&下载
+## 运行效果
 
-编译完成后，将开发板的 ST-Link USB 口与 PC 机连接，然后将固件下载至开发板。
+看[这里](https://www.bilibili.com/video/BV1cu4m1u7XQ/?vd_source=466089d0ec8d6900e05ca70f2544ac18)
 
-### 运行效果
+整体的对话体验，识别准确度，以及相应速度，都还行。
 
-![wifi_autoconnect](./figures/wifi_autoconnect.png)
+## 其他
 
-## 注意事项
+### 有关模型
 
-1. AP6212 正常运行依赖 WIFI 固件，如果固件丢失，参考[WIFI固件下载手册](https://github.com/RT-Thread-Studio/sdk-bsp-stm32h750-realthread-artpi/blob/master/documents/UM5003-RT-Thread%20ART-Pi%20BT_WIFI%20%E6%A8%A1%E5%9D%97%E5%9B%BA%E4%BB%B6%E4%B8%8B%E8%BD%BD%E6%89%8B%E5%86%8C.md)。
+1. 语音转文字：Baidu语音转文字，极速版。新用户注册，白嫖的额度；
 
+2. Chart AI：国内的零一大模型，创新工场的出来的，也是注册送60元额度，白嫖。
+
+3. 服务端：为了减轻client端的压力，以及方便后续的管理，有一个run在阿里云的web server；
+
+待续..
