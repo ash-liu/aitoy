@@ -29,10 +29,13 @@ static rt_uint8_t lvgl_thread_stack[LV_THREAD_STACK_SIZE];
 #define MSG_QUEUE_BUFFER_SIZE   1024*4
 #define MSG_QUEUE_ELEMENT_SIZE  1024*2
 struct rt_messagequeue lvgl_msg_mq;           // 消息队列控制块
-lv_obj_t * cz_label;
+lv_obj_t * message_label;
+lv_obj_t * state_label;
 
 rt_uint8_t gpt4_used = 0;
+extern rt_thread_t main_tid;;
 
+rt_uint8_t append_flag = 1;
 
 /* 事件回调函数 */
 static void screen_click_event_cb(lv_event_t * e) {
@@ -47,6 +50,7 @@ static void screen_click_event_cb(lv_event_t * e) {
 
     /* 判断点击是在上半部分还是下半部分，并相应地滚动内容 */
     if (point.x < width / 3) {
+        #if 0
         if (gpt4_used == 0) {
             gpt4_used = 1;
             rt_mq_send(&lvgl_msg_mq, "gpt4 used on.\n", sizeof("gpt4 used on.\n"));
@@ -57,13 +61,15 @@ static void screen_click_event_cb(lv_event_t * e) {
             rt_mq_send(&lvgl_msg_mq, "gpt4 used off.\n", sizeof("gpt4 used off.\n"));
             rt_kprintf("gpt4 used off.\n");
         }
+        #endif
+        rt_thread_kill(main_tid, SIGUSR1);
     }
     else {
         if (point.y > height / 2) {
-            lv_obj_scroll_by(obj, 0, -height / 2, LV_ANIM_OFF); // 向上滚动
+            lv_obj_scroll_by(message_label, 0, -height / 2, LV_ANIM_OFF); // 向上滚动
         } 
         else {
-            lv_obj_scroll_by(obj, 0, height / 2, LV_ANIM_OFF);  // 向下滚动
+            lv_obj_scroll_by(message_label, 0, height / 2, LV_ANIM_OFF);  // 向下滚动
         }
     }
 }
@@ -72,34 +78,49 @@ static void screen_click_event_cb(lv_event_t * e) {
 static void init_demo_ui()
 {
     // 创建label
-    cz_label = lv_label_create(lv_scr_act());
+    message_label = lv_label_create(lv_scr_act());
     
     // 设置样式文本字体
-    lv_obj_set_style_text_font(cz_label, &lv_font_myfont, 0);
-    lv_label_set_long_mode(cz_label, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(cz_label, 470);
-    lv_obj_align(cz_label, LV_ALIGN_BOTTOM_LEFT, 5, 5);
+    lv_obj_set_style_text_font(message_label, &lv_font_myfont, 0);
+    lv_label_set_long_mode(message_label, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(message_label, 470);
+    lv_obj_align(message_label, LV_ALIGN_TOP_LEFT, 5, 5);
 
     //设置样式文本行间距
     static lv_style_t style;
     lv_style_init(&style);
     lv_style_set_text_line_space(&style, 7);
-    lv_obj_add_style(cz_label, &style, 0);
+    lv_obj_add_style(message_label, &style, 0);
 
     // 设置label的回调函数
     lv_obj_add_event_cb(lv_scr_act(), screen_click_event_cb, LV_EVENT_CLICKED, NULL);
+
+    state_label = lv_label_create(lv_layer_sys());
+    lv_obj_set_style_bg_opa(state_label, LV_OPA_50, 0);
+    lv_obj_set_style_bg_color(state_label, lv_color_black(), 0);
+    lv_obj_set_style_text_color(state_label, lv_color_white(), 0);
+    lv_obj_set_style_pad_top(state_label, 3, 0);
+    lv_obj_set_style_pad_bottom(state_label, 3, 0);
+    lv_obj_set_style_pad_left(state_label, 3, 0);
+    lv_obj_set_style_pad_right(state_label, 3, 0);
+    lv_obj_set_style_text_align(state_label, LV_TEXT_ALIGN_RIGHT, 0);
+    lv_label_set_text(state_label, "");
+    lv_obj_align(state_label, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
 }
 
 static void show_message(const char *message)
 {
-    // lv_obj_set_style_text_font(cz_label, &lv_font_myfont, 0);
-    // lv_obj_set_width(cz_label, 410);
-    // lv_obj_align(cz_label, LV_ALIGN_TOP_LEFT, 5, 5);
-    lv_label_set_text(cz_label, message);
+    // lv_obj_set_style_text_font(message_label, &lv_font_myfont, 0);
+    // lv_obj_set_width(message_label, 410);
+    // lv_obj_align(message_label, LV_ALIGN_TOP_LEFT, 5, 5);
+    lv_label_set_text(message_label, message);
+    lv_obj_set_y(message_label, 3);
+    // lv_obj_scroll_to_y(message_label, -10000, LV_ANIM_OFF);
+    // lv_obj_scroll_to_view(message_label, LV_ANIM_OFF);
 
     // 计算需要滚动的距离，以便最新的内容能够显示出来
     // 这里我们直接滚动到文本区域的底部
-    lv_obj_scroll_to_y(cz_label, 10000, LV_ANIM_ON);
+    // lv_obj_scroll_to_y(message_label, 10000, LV_ANIM_ON);
 }
 
 
@@ -144,22 +165,28 @@ static void lvgl_entry(void *parameter)
             for (int i = 0; i < rt_strlen(buf); i++) {
                 rt_kprintf("%c", buf[i]);
             }
-            const char *current_text = lv_label_get_text(cz_label);
-            size_t new_size = strlen(current_text) + strlen(buf) + 1;
-            char *full_text = rt_malloc(new_size);
 
-            if (full_text != RT_NULL) {
-                // 将当前文本和新文本合并到新分配的内存中
-                strcpy(full_text, current_text);
-                strcat(full_text, buf);
-
-                // 更新标签的文本
-                show_message(full_text);
-                // lv_label_set_text(label, full_text);
-
-                // 释放临时分配的内存
-                rt_free(full_text);
+            if (append_flag == 0) {
+                show_message(buf);
             }
+            else {
+                const char *current_text = lv_label_get_text(message_label);
+                size_t new_size = strlen(current_text) + strlen(buf) + 1;
+                char *full_text = rt_malloc(new_size);
+
+                if (full_text != RT_NULL) {
+                    // 将当前文本和新文本合并到新分配的内存中
+                    strcpy(full_text, current_text);
+                    strcat(full_text, buf);
+
+                    // 更新标签的文本
+                    show_message(full_text);
+
+                    // 释放临时分配的内存
+                    rt_free(full_text);
+                }
+            }
+            
         }
 
         lv_task_handler();

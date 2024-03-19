@@ -25,7 +25,8 @@
 #define POST_HEADER_BUFSZ 1024 * 5
 
 // #define POST_LOCAL_URI "https://wx.lstabc.com/weixin"
-#define POST_LOCAL_URI "http://lstabc.com:8000/weixin"
+// #define POST_LOCAL_URI "http://lstabc.com:8000/weixin"
+#define POST_LOCAL_URI "http://47.92.124.238:8000/weixin"
 
 const char *post_data = "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[你好]]></Content><MsgId>123</MsgId></xml>";
 #define BUILD_MESSAGE_TEST "<xml><ToUserName><![CDATA[artpi]]></ToUserName><FromUserName><![CDATA[artpi]]></FromUserName><CreateTime>1348831860</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><MsgId>123</MsgId></xml>"

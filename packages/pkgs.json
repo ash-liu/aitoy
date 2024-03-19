@@ -5,6 +5,11 @@
   "name": "WEBCLIENT"
  }, 
  {
+  "path": "/packages/iot/airkissOpen", 
+  "ver": "latest", 
+  "name": "AIRKISS_OPEN"
+ }, 
+ {
   "path": "/packages/security/mbedtls", 
   "ver": "v2.7.10.1", 
   "name": "MBEDTLS"

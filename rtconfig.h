@@ -32,6 +32,7 @@
 #define RT_USING_EVENT
 #define RT_USING_MAILBOX
 #define RT_USING_MESSAGEQUEUE
+#define RT_USING_SIGNALS
 /* end of Inter-Thread communication */
 
 /* Memory Management */
@@ -282,6 +283,9 @@
 /* IoT Cloud */
 
 /* end of IoT Cloud */
+#define PKG_USING_AIRKISS_OPEN
+#define AIRKISS_OPEN_DEMO_ENABLE
+#define PKG_USING_AKO_Vlast
 /* end of IoT - internet of things */
 
 /* security packages */

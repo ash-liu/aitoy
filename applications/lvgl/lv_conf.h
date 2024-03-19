@@ -13,7 +13,7 @@
 
 #include <rtconfig.h>
 
-#define LV_USE_PERF_MONITOR 1
+#define LV_USE_PERF_MONITOR 0
 #define LV_DISP_DEF_REFR_PERIOD 10
 
 #ifdef BSP_USING_ILI9488

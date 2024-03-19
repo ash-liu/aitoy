@@ -243,6 +243,18 @@ static int write_cfg(void *buff, int len)
     return len;
 }
 
+static void clear_wifi_record(void)
+{
+    ef_set_env_blob("wlan_cfg_len", 0, 0);
+    ef_set_env_blob("wlan_cfg_info", 0, 0);
+}
+
+#ifdef FINSH_USING_MSH
+#include <finsh.h>
+MSH_CMD_EXPORT_ALIAS(clear_wifi_record, clear_wifi_record, clear_wifi_record.);
+#endif /* FINSH_USING_MSH */
+
+
 #endif /* (EF_SW_VERSION_NUM < 0x40000) */
 
 static const struct rt_wlan_cfg_ops ops =
